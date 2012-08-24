@@ -149,11 +149,18 @@ static void set_acpuclk_L2_freq_foot_print(unsigned khz)
 /* PTE EFUSE register. */
 #define QFPROM_PTE_EFUSE_ADDR	(MSM_QFPROM_BASE + 0x00C0)
 
-/* HTC: Custom max frequency. */
-#ifdef CONFIG_ACPU_CUSTOM_FREQ_SUPPORT
-static int acpu_max_freq = CONFIG_ACPU_MAX_FREQ;
+#ifdef CONFIG_ACPU_OVERCLOCK
+#define FREQ_TABLE_SIZE    34
 #else
-static int acpu_max_freq = 0;
+#define FREQ_TABLE_SIZE    30
+#endif
+
+/* HTC: Custom max frequency. */
+/* #ifdef CONFIG_ACPU_CUSTOM_FREQ_SUPPORT */
+#ifdef CONFIG_ACPU_OVERCLOCK
+static int acpu_max_freq = 1890000;
+#else
+static int acpu_max_freq = 1512000;
 #endif
 
 enum scalables {
@@ -1423,7 +1430,7 @@ static void __init bus_init(void)
 }
 
 #ifdef CONFIG_CPU_FREQ_MSM
-static struct cpufreq_frequency_table freq_table[NR_CPUS][30];
+static struct cpufreq_frequency_table freq_table[NR_CPUS][FREQ_TABLE_SIZE];
 
 static void __init cpufreq_table_init(void)
 {

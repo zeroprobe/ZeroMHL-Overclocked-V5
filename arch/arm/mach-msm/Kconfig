@@ -2289,6 +2289,10 @@ config ACPU_MAX_FREQ
 	  If set to non-zero number, will search for this frequency in
           frequency table and set as maximum supported frequency if found.
 
+config ACPU_OVERCLOCK
+	bool "Use overclock"
+	default n
+
 config AUDIO_USAGE_FOR_POWER_CONSUMPTION
 	bool "AUDIO_USAGE_FOR_POWER_CONSUMPTION"
 	default n
