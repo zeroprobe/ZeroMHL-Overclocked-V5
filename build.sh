@@ -1,4 +1,4 @@
-CROSS_COMPILE=/home/klin1344/aosp/prebuilts/gcc/linux-x86/arm/arm-eabi-4.6/bin/arm-eabi-
+CROSS_COMPILE=/home/klin1344/toolchains/arm-eabi-4.4.3/bin/arm-eabi-
 INITRAMFS_DIR=ramdisk.gz
 KERNEL_NAME=FusionUlt_4.0.4_Sense
 KERNEL_VNUMBER=1.1
