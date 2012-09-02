@@ -120,6 +120,8 @@
 #include <mach/perflock.h>
 #endif
 
+#define HW_VER_ID_VIRT		(MSM_TLMM_BASE + 0x00002054)
+
 static int camera_sensor_power_enable(char *power, unsigned volt, struct regulator **sensor_power);
 static int camera_sensor_power_disable(struct regulator *sensor_power);
 static uint32_t msm_rpm_get_swfi_latency(void);
@@ -1422,24 +1424,24 @@ static struct camera_led_est msm_camera_sensor_s5k3h2yx_led_table[] = {
 		.led_state = FL_MODE_FLASH_LEVEL2,
 		.current_ma = 200,
 		.lumen_value = 250,
-		.min_step = 32,//31,/*26, //Mu L 0209 */
-		.max_step = 128
+		.min_step = 64,//31,/*26, //Mu L 0209 */
+		.max_step = 256
 	},
 		{
 		.enable = 1,//0, Mu L 0302
 		.led_state = FL_MODE_FLASH_LEVEL3,
 		.current_ma = 300,
-		.lumen_value = 350,//300, 
-		.min_step = 30,//29,
-		.max_step = 31//34
+		.lumen_value = 350,//300,
+		.min_step = 60,//29,
+		.max_step = 63//34
 	},
 		{
 		.enable = 1,//0, Mu L 0302
 		.led_state = FL_MODE_FLASH_LEVEL4,
 		.current_ma = 400,
 		.lumen_value = 440,//400,
-		.min_step = 28,//27,
-		.max_step = 29//28
+		.min_step = 56,//27,
+		.max_step = 59//28
 	},
 //		{
 //		.enable = 0,
@@ -1454,8 +1456,8 @@ static struct camera_led_est msm_camera_sensor_s5k3h2yx_led_table[] = {
 		.led_state = FL_MODE_FLASH_LEVEL6,
 		.current_ma = 600,
 		.lumen_value = 625,//600,
-		.min_step = 26,//23,
-		.max_step = 27//24
+		.min_step = 52,//23,
+		.max_step = 55//24
 	},
 	/*
 		{
@@ -1473,7 +1475,7 @@ static struct camera_led_est msm_camera_sensor_s5k3h2yx_led_table[] = {
 		.current_ma = 750,
 		.lumen_value = 745,//725,   //mk0217
 		.min_step = 0,
-		.max_step = 25//30/*25    //Mu L 0209*/
+		.max_step = 51//30/*25    //Mu L 0209*/
 	},
 
 		{
@@ -1548,7 +1550,7 @@ static struct camera_flash_info msm_camera_sensor_s5k3h2yx_flash_info = {
 
 static struct camera_flash_cfg msm_camera_sensor_s5k3h2yx_flash_cfg = {
 	.low_temp_limit		= 5,
-	.low_cap_limit		= 5,
+	.low_cap_limit		= 15,
 	.flash_info             = &msm_camera_sensor_s5k3h2yx_flash_info,
 };
 /* Andrew_Cheng linear led 20111205 ME */
@@ -2171,11 +2173,11 @@ static struct headset_adc_config htc_headset_mgr_config[] = {
 	{
 		.type = HEADSET_MIC,
 		.adc_max = 1530,
-		.adc_min = 1244,
+		.adc_min = 1223,
 	},
 	{
 		.type = HEADSET_BEATS,
-		.adc_max = 1243,
+		.adc_max = 1222,
 		.adc_min = 916,
 	},
 	{
@@ -4216,10 +4218,11 @@ put_mvs_otg:
 		vbus_is_on = false;
 }
 
-static int ville_phy_init_seq[] = { 0x7F, 0x81, 0x3C, 0x82, -1 };
+static int phy_init_seq_v3[] = { 0x7f, 0x81, 0x3c, 0x82, -1};
+static int phy_init_seq_v3_2_1[] = { 0x5f, 0x81, 0x3c, 0x82, -1};
 
 static struct msm_otg_platform_data msm_otg_pdata = {
-	.phy_init_seq		= ville_phy_init_seq,
+	.phy_init_seq		= phy_init_seq_v3,
 	.mode			= USB_OTG,
 	.otg_control		= OTG_PMIC_CONTROL,
 	.phy_type		= SNPS_28NM_INTEGRATED_PHY,
@@ -4363,9 +4366,17 @@ static struct platform_device android_usb_device = {
 	},
 };
 
+#define VERSION_ID (readl(HW_VER_ID_VIRT) & 0xf0000000) >> 28
+#define HW_8960_V3_2_1   0x07
 void ville_add_usb_devices(void)
 {
-	printk(KERN_INFO "%s rev: %d\n", __func__, system_rev);
+	if (VERSION_ID == HW_8960_V3_2_1) {
+		printk(KERN_INFO "%s rev: %d v3.2.1\n", __func__, system_rev);
+		msm_otg_pdata.phy_init_seq = phy_init_seq_v3_2_1;
+	} else {
+		printk(KERN_INFO "%s rev: %d\n", __func__, system_rev);
+		msm_otg_pdata.phy_init_seq = phy_init_seq_v3;
+	}
 	android_usb_pdata.products[0].product_id =
 			android_usb_pdata.product_id;
 
@@ -5282,7 +5293,7 @@ static struct pm8xxx_led_configure pm8921_led_info[] = {
 		.duites_size 	= 8,
 		.duty_time_ms 	= 64,
 		.lut_flag 	= PM_PWM_LUT_RAMP_UP | PM_PWM_LUT_PAUSE_HI_EN,
-		.out_current    = 2,
+		.out_current    = 40,
 		.duties		= {0, 9, 18, 27, 36, 45, 54, 60,
 				60, 54, 45, 36, 27, 18, 9, 0,
 				0, 0, 0, 0, 0, 0, 0, 0,

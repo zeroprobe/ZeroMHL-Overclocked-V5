@@ -524,6 +524,7 @@ static inline void mipi_dsi_set_backlight(struct msm_fb_data_type *mfd)
 	if (panel_type == PANEL_ID_VILLE_SAMSUNG_SG || panel_type == PANEL_ID_VILLE_SAMSUNG_SG_C2)
 		mipi_dsi_cmds_tx(mfd, &ville_panel_tx_buf, samsung_cmd_backlight_cmds,
 				ARRAY_SIZE(samsung_cmd_backlight_cmds));
+	PR_DISP_DEBUG("%s+ bl_level=%d\n", __func__, mfd->bl_level);
 	mutex_unlock(&mfd->dma->ov_mutex);
 
 	return;
@@ -650,7 +651,6 @@ static void ville_set_backlight(struct msm_fb_data_type *mfd)
 	mipi_dsi_set_backlight(mfd);
 
 	cur_bl_level = mfd->bl_level;
-	PR_DISP_DEBUG("%s+ bl_level=%d\n", __func__, mfd->bl_level);
 }
 
 #if defined (CONFIG_MSM_AUTOBL_ENABLE)

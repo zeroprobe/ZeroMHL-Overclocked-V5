@@ -4609,6 +4609,8 @@ msmsdcc_probe(struct platform_device *pdev)
 
 	if (is_sd_platform(host->plat) || is_mmc_platform(host->plat))
 		mmc->caps |= MMC_CAP_ERASE;
+	if (is_mmc_platform(host->plat))
+		mmc->tp_enable = 1;
 	/*
 	 * If we send the CMD23 before multi block write/read command
 	 * then we need not to send CMD12 at the end of the transfer.

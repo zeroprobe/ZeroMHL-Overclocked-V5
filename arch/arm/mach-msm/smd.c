@@ -2370,7 +2370,7 @@ int smsm_change_state(uint32_t smsm_entry,
 	old_state = __raw_readl(SMSM_STATE_ADDR(smsm_entry));
 	new_state = (old_state & ~clear_mask) | set_mask;
 	__raw_writel(new_state, SMSM_STATE_ADDR(smsm_entry));
-	SMSM_DBG("smsm_change_state %x\n", new_state);
+	SMSM_INFO("smsm_change_state %x\n", new_state);
 	notify_other_smsm(SMSM_APPS_STATE, (old_state ^ new_state));
 
 	spin_unlock_irqrestore(&smem_lock, flags);

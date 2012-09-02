@@ -18,6 +18,8 @@
 #include <linux/backing-dev.h>
 #include "internal.h"
 
+#include <trace/events/mmcio.h>
+
 #define VALID_FLAGS (SYNC_FILE_RANGE_WAIT_BEFORE|SYNC_FILE_RANGE_WRITE| \
 			SYNC_FILE_RANGE_WAIT_AFTER)
 
@@ -98,11 +100,13 @@ static void sync_filesystems(int wait)
  */
 SYSCALL_DEFINE0(sync)
 {
+	trace_sys_sync(0);
 	wakeup_flusher_threads(0);
 	sync_filesystems(0);
 	sync_filesystems(1);
 	if (unlikely(laptop_mode))
 		laptop_sync_completion();
+	trace_sys_sync_done(0);
 	return 0;
 }
 
@@ -138,8 +142,6 @@ SYSCALL_DEFINE1(syncfs, int, fd)
 	struct super_block *sb;
 	int ret;
 	int fput_needed;
-	
-	return 0;
 
 	file = fget_light(fd, &fput_needed);
 	if (!file)
@@ -169,8 +171,6 @@ int vfs_fsync_range(struct file *file, loff_t start, loff_t end, int datasync)
 {
 	struct address_space *mapping = file->f_mapping;
 	int err, ret;
-	
-	return 0;
 
 	if (!file->f_op || !file->f_op->fsync) {
 		ret = -EINVAL;
@@ -183,11 +183,13 @@ int vfs_fsync_range(struct file *file, loff_t start, loff_t end, int datasync)
 	 * We need to protect against concurrent writers, which could cause
 	 * livelocks in fsync_buffers_list().
 	 */
+	trace_vfs_fsync(file);
 	mutex_lock(&mapping->host->i_mutex);
 	err = file->f_op->fsync(file, datasync);
 	if (!ret)
 		ret = err;
 	mutex_unlock(&mapping->host->i_mutex);
+	trace_vfs_fsync_done(file);
 
 out:
 	return ret;
@@ -204,8 +206,6 @@ EXPORT_SYMBOL(vfs_fsync_range);
  */
 int vfs_fsync(struct file *file, int datasync)
 {
-	return 0;
-	
 	return vfs_fsync_range(file, 0, LLONG_MAX, datasync);
 }
 EXPORT_SYMBOL(vfs_fsync);
@@ -214,8 +214,6 @@ static int do_fsync(unsigned int fd, int datasync)
 {
 	struct file *file;
 	int ret = -EBADF;
-	
-	return 0;
 
 	file = fget(fd);
 	if (file) {
@@ -227,15 +225,11 @@ static int do_fsync(unsigned int fd, int datasync)
 
 SYSCALL_DEFINE1(fsync, unsigned int, fd)
 {
-	return 0;
-	
 	return do_fsync(fd, 0);
 }
 
 SYSCALL_DEFINE1(fdatasync, unsigned int, fd)
 {
-	return 0;
-	
 	return do_fsync(fd, 1);
 }
 
@@ -249,8 +243,6 @@ SYSCALL_DEFINE1(fdatasync, unsigned int, fd)
  */
 int generic_write_sync(struct file *file, loff_t pos, loff_t count)
 {
-	return 0;
-	
 	if (!(file->f_flags & O_DSYNC) && !IS_SYNC(file->f_mapping->host))
 		return 0;
 	return vfs_fsync_range(file, pos, pos + count - 1,
@@ -314,8 +306,6 @@ SYSCALL_DEFINE(sync_file_range)(int fd, loff_t offset, loff_t nbytes,
 	loff_t endbyte;			/* inclusive */
 	int fput_needed;
 	umode_t i_mode;
-	
-	return 0;
 
 	ret = -EINVAL;
 	if (flags & ~VALID_FLAGS)
